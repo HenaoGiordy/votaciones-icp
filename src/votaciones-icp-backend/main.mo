@@ -45,6 +45,20 @@ actor{
         return #err(#VoteNotFound);
       };
     };
-  }
+  };
+
+  //Get a specific vote by it´s number
+  public query func getVote(number: Text): async Result.Result<models.Vote, Error.VoteError> {
+    var vote = votes.get(number);
+    switch(vote){
+      case (?vote) {
+        return #ok(vote);
+      };
+      case null {
+        return #err(#VoteNotFound);
+        };
+      };
+    };
+  
 }
 
