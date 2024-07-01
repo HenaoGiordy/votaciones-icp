@@ -6,56 +6,61 @@ import Buffer "mo:base/Buffer";
 import Error "errors";
 
 actor{
-  //Create a hashmap to store the votes
-  var votes = HashMap.HashMap<Text, models.Vote>(5, Text.equal, Text.hash);
+  //Create a hashmap to store the Elections
+  var elections = HashMap.HashMap<Text, models.Election>(5, Text.equal, Text.hash);
 
-  //Create a new vote
-  public func createVote(vote : models.Vote) : async Result.Result<models.Vote,  Error.VoteError>{
-    //Check if the vote already exists
-    if((votes.get(vote.number)) != null){
-      return #err(#VoteAlreadyExists);
+  //Create a new Election
+  public func createElection(election : models.Election) : async Result.Result<models.Election,  Error.ElectionError>{
+    //Check if the Election already exists
+    switch(elections.get(election.number)){
+      case (?_) {
+        return #err(#ElectionAlreadyExists);
+      };
+      case null {
+        //Add the Election to the hashmap
+        elections.put(election.number, election);
+        return #ok(election);
+      };
     };
-      //Add the vote to the hashmap
-      votes.put(vote.number, vote);
-      return #ok(vote);
-    };
+    
+  };
   
-  //Add a candidate to a vote
-  public func addCandidate(voteNumber : Text, candidate : models.Candidate) : async Result.Result<models.Candidate, Error.VoteError>{
-    var vote = votes.get(voteNumber);
-    switch(vote){
-      case (?vote) {
+  //Add a candidate to a Election
+  public func addCandidate(electionNumber : Text, candidate : models.Candidate) : async Result.Result<models.Candidate, Error.ElectionError>{
+    var election = elections.get(electionNumber);
+    switch(election){
+      case (?election) {
         //Get the candidates
-        var canditates = Buffer.fromArray<models.Candidate>(vote.candidates);
+        var canditates = Buffer.fromArray<models.Candidate>(election.candidates);
         //Add the new candidate
         canditates.add(candidate);
         //Convert new Buffer<Candidates> to an array of candidates
         var newArray = Buffer.toArray(canditates);
-        //Create a new vote with the new candidate
-        var newVote: models.Vote = {
-          number = voteNumber;
+        //Create a new Election with the new candidate
+        var newElection: models.Election = {
+          number = electionNumber;
           candidates = newArray;
         };
-        //Replace the old vote with the new one
-        ignore votes.replace(voteNumber, newVote);
+        //Replace the old Election with the new one
+        ignore elections.replace(electionNumber, newElection);
         return #ok(candidate);
       };
       case null {
-        //If the vote does not exist
-        return #err(#VoteNotFound);
+        //If the Election does not exist
+        return #err(#ElectioNotFound);
       };
     };
   };
 
-  //Get a specific vote by it´s number
-  public query func getVote(number: Text): async Result.Result<models.Vote, Error.VoteError> {
-    var vote = votes.get(number);
-    switch(vote){
-      case (?vote) {
-        return #ok(vote);
+  //Get a specific Election by it´s number
+  public query func getElection(number: Text): async Result.Result<models.Election, Error.ElectionError> {
+    var election = elections.get(number);
+    switch(election){
+      case (?election) {
+        return #ok(election);
       };
       case null {
-        return #err(#VoteNotFound);
+        return #err(#ElectioNotFound);
         };
       };
     };

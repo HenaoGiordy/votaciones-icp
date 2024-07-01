@@ -7,7 +7,7 @@ module{
         votes : Nat;
     };
 
-    public type Vote = {
+    public type Election = {
         number: Text;
         candidates : [Candidate];
     };
