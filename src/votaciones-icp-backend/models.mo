@@ -1,5 +1,3 @@
-import Text "mo:base/Text";
-
 module{
     public type Candidate = {
         number: Text;
