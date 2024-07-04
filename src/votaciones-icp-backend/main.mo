@@ -42,6 +42,12 @@ actor{
       case (?election) {
         //Get the candidates
         var canditates = Buffer.fromArray<models.Candidate>(election.candidates);
+        for(i in canditates.vals()){
+          //Check if the candidate already exists
+          if(i.number == candidate.number){
+            return #err(#CandidateAlreadyExists);
+          };
+        };
         //Add the new candidate
         canditates.add(candidate);
         //Convert new Buffer<Candidates> to an array of candidates
