@@ -10,5 +10,6 @@ module{
     public type Election = {
         number: Text;
         candidates : [Candidate];
+        voters : [Principal]
     };
 }

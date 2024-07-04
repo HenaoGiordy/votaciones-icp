@@ -50,6 +50,7 @@ actor{
         var newElection: models.Election = {
           number = electionNumber;
           candidates = newArray;
+          voters = election.voters;
         };
         //Replace the old Election with the new one
         ignore elections.replace(electionNumber, newElection);
@@ -85,6 +86,11 @@ actor{
     
     switch(election){
       case(?election){
+        var voters = Buffer.fromArray<Principal>(election.voters);
+        //Check if the user has already voted
+        if(Buffer.contains<Principal>(voters, msg.caller, Principal.equal)){
+          return #err(#AlreadyVoted);
+        };
         //Get the Candidate
         var candidates = election.candidates;
         var candidate: ?models.Candidate = Array.find<models.Candidate>(candidates, func x = x.number == numberCandidate);
@@ -99,11 +105,14 @@ actor{
                   name = i.name;
                   votes = i.votes + 1;
                 };
-                modify.insert(iterador, newCandidate);
+                modify.put(iterador, newCandidate);
                 var electionModified = Buffer.toArray<models.Candidate>(modify);
+                var voters = Buffer.fromArray<Principal>(election.voters);
+                voters.add(msg.caller);
                 var newElection: models.Election = {
                   number = numberElection;
                   candidates = electionModified;
+                  voters = Buffer.toArray<Principal>(voters);
                 };
                 ignore elections.replace(numberElection, newElection);
                 return #ok((newCandidate));
@@ -122,7 +131,29 @@ actor{
         return #err(#ElectioNotFound);
       }
     }
-  }
+  };
+
+  //Get a specific Candidate by it´s number
+  public query func getCandidate(numberCandidate : Text, numberElection: Text) : async Result.Result<models.Candidate, Error.ElectionError>{
+    var election = elections.get(numberElection);
+    switch(election){
+      case(?election){
+        var candidates = election.candidates;
+        var candidate: ?models.Candidate = Array.find<models.Candidate>(candidates, func x = x.number == numberCandidate);
+        switch(candidate){
+          case(?candidate){
+            return #ok(candidate);
+          };
+          case null{
+            return #err(#CandidateNotFound);
+          };
+        };
+      };
+      case null{
+        return #err(#ElectioNotFound);
+      };
+    };
+  };
 
   
 }
